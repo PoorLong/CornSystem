@@ -104,6 +104,33 @@ class MobileNet_ResNet_UltraLight(nn.Module):
 
 class PestDiseaseClassifier:
     def __init__(self, model_path='models/best_model.pth', config_path='models/config.json'):
+        # 确保 models 目录存在
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
+        # ---------- 新增：如果模型文件不存在，从 GitHub Releases 下载 ----------
+        if not os.path.exists(model_path):
+            print(f"⚠️ 本地模型文件不存在: {model_path}")
+            print("正在从 GitHub Releases 下载模型文件...")
+
+            # 替换为你的 GitHub Release 下载直链
+            # 格式: https://github.com/你的用户名/你的仓库名/releases/download/版本号/文件名
+            model_url = "https://github.com/PoorLong/CornSystem/releases/download/best_model/best_model.pth"
+
+            try:
+                import requests
+                response = requests.get(model_url, stream=True, timeout=60)
+                response.raise_for_status()  # 检查下载是否成功
+
+                with open(model_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                print(f"✅ 模型下载成功，已保存至 {model_path}")
+            except Exception as e:
+                print(f"❌ 模型下载失败: {e}")
+                raise RuntimeError(f"无法加载模型文件，请检查网络或手动上传模型到 {model_path}") from e
+
+        # ---------- 后续原有代码不变 ----------
+
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print(f"使用设备: {self.device}")
 
