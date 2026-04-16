@@ -6,3 +6,16 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+# 模型文件（避免提交大文件）
+models/best_model.pth
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 虚拟环境
+venv/
+.env
+
+# 临时文件夹
+temp_uploads/
