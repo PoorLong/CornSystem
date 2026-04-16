@@ -1,0 +1,12 @@
+{
+  "num_classes": 7,
+  "image_size": 224,
+  "batch_size": 64,
+  "device": "cuda",
+  "model_dir": "/gemini/output/mobilenet_resnet_light",
+  "data_dir": "/gemini/data-1/dataset_augmented",
+  "test_size": 0.2,
+  "random_state": 42,
+  "visualization_dir": "/gemini/output/visualizations",
+  "model_name": "MobileNet_ResNet_Light"
+}
