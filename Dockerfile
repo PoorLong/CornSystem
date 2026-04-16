@@ -13,4 +13,4 @@ COPY frontend/ frontend/
 COPY models/config.json models/
 
 # 启动后端服务
-CMD cd backend && python app.py
+CMD ["python", "backend/app.py"]
