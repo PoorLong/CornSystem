@@ -111,19 +111,19 @@ def predict():
             return jsonify({'success': False, 'error': '不支持的请求格式'}), 400
 
         # ========== 临时禁用叶片检测 ==========
-        # is_corn_leaf, leaf_conf, leaf_details = leaf_detector.detect_corn_leaf(image)
-        # if not is_corn_leaf:
-        #     return jsonify({
-        #         'success': True,
-        #         'is_corn_leaf': False,
-        #         'leaf_confidence': leaf_conf,
-        #         'message': '请上传玉米叶片照片',
-        #         'details': leaf_details
-        #     })
+        is_corn_leaf, leaf_conf, leaf_details = leaf_detector.detect_corn_leaf(image)
+        if not is_corn_leaf:
+            return jsonify({
+                'success': True,
+                'is_corn_leaf': False,
+                'leaf_confidence': leaf_conf,
+                'message': '请上传玉米叶片照片',
+                'details': leaf_details
+            })
         # 直接通过：
-        is_corn_leaf = True
-        leaf_conf = 1.0
-        leaf_details = {}
+        # is_corn_leaf = True
+        # leaf_conf = 1.0
+        # leaf_details = {}
 
         # 病害识别
         result = classifier.predict_with_validation(image)
