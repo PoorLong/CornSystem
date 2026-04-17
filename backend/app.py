@@ -199,4 +199,12 @@ if __name__ == '__main__':
     logger.info(f"启动病虫害识别后端服务，端口: {port}")
     logger.info(f"模型文件: models/best_model.pth")
     logger.info(f"配置文件: models/config.json")
+
+    # 预热模型：启动时加载，避免首次请求耗时过长
+    logger.info("预热模型中...")
+    from model import get_classifier
+
+    get_classifier()
+    logger.info("模型预热完成")
+
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)

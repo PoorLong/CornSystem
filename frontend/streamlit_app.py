@@ -165,7 +165,7 @@ def show_single_prediction():
                     with st.spinner("🔄 识别中..."):
                         files = {'image': (uploaded_file.name, uploaded_file.getvalue(), 'image/jpeg')}
                         try:
-                            response = requests.post(f"{BACKEND_URL}/predict", files=files, timeout=30)
+                            response = requests.post(f"{BACKEND_URL}/predict", files=files, timeout=90)
                             if response.status_code == 200:
                                 data = response.json()
                                 if data.get('success'):
