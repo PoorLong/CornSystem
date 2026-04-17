@@ -87,13 +87,69 @@ def health_check():
 #     except Exception as e:
 #         return jsonify({'success': False, 'error': str(e)}), 500
 
+# @app.route('/predict', methods=['POST'])
+# def predict():
+#     start_time = time.time()
+#     try:
+#         classifier = get_classifier()
+#
+#         # 获取图片
+#         if 'image' in request.files:
+#             file = request.files['image']
+#             if not file or not allowed_file(file.filename):
+#                 return jsonify({'success': False, 'error': '无效图片'}), 400
+#             img_bytes = file.read()
+#             image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+#         elif request.is_json:
+#             data = request.get_json()
+#             if 'image_base64' in data:
+#                 img_data = base64.b64decode(data['image_base64'].split(',')[-1])
+#                 image = Image.open(io.BytesIO(img_data)).convert('RGB')
+#             else:
+#                 return jsonify({'success': False, 'error': '未提供图片'}), 400
+#         else:
+#             return jsonify({'success': False, 'error': '不支持的请求格式'}), 400
+#
+#         # ========== 临时禁用叶片检测 ==========
+#         is_corn_leaf, leaf_conf, leaf_details = leaf_detector.detect_corn_leaf(image)
+#         if not is_corn_leaf:
+#             return jsonify({
+#                 'success': True,
+#                 'is_corn_leaf': False,
+#                 'leaf_confidence': leaf_conf,
+#                 'message': '请上传玉米叶片照片',
+#                 'details': leaf_details
+#             })
+#         # 直接通过：
+#         # is_corn_leaf = True
+#         # leaf_conf = 1.0
+#         # leaf_details = {}
+#
+#         # 病害识别
+#         result = classifier.predict_with_validation(image)
+#         process_time = time.time() - start_time
+#
+#         return jsonify({
+#             'success': True,
+#             'is_corn_leaf': is_corn_leaf,
+#             'leaf_confidence': leaf_conf,
+#             'result': result,
+#             'process_time': process_time
+#         })
+#
+#     except Exception as e:
+#         import traceback
+#         error_detail = traceback.format_exc()
+#         logger.error(f"预测失败: {error_detail}")
+#         return jsonify({'success': False, 'error': str(e), 'detail': error_detail}), 500
+
 @app.route('/predict', methods=['POST'])
 def predict():
     start_time = time.time()
     try:
         classifier = get_classifier()
 
-        # 获取图片
+        # ---------- 获取图片 ----------
         if 'image' in request.files:
             file = request.files['image']
             if not file or not allowed_file(file.filename):
@@ -110,8 +166,14 @@ def predict():
         else:
             return jsonify({'success': False, 'error': '不支持的请求格式'}), 400
 
-        # ========== 临时禁用叶片检测 ==========
+        # ---------- 叶片检测 ----------
         is_corn_leaf, leaf_conf, leaf_details = leaf_detector.detect_corn_leaf(image)
+
+        # 移除不可序列化的字段（NumPy 数组）
+        if 'contour_info' in leaf_details:
+            leaf_details['contour_info'].pop('mask', None)
+            leaf_details['contour_info'].pop('contour', None)
+
         if not is_corn_leaf:
             return jsonify({
                 'success': True,
@@ -120,18 +182,14 @@ def predict():
                 'message': '请上传玉米叶片照片',
                 'details': leaf_details
             })
-        # 直接通过：
-        # is_corn_leaf = True
-        # leaf_conf = 1.0
-        # leaf_details = {}
 
-        # 病害识别
+        # ---------- 病害识别 ----------
         result = classifier.predict_with_validation(image)
         process_time = time.time() - start_time
 
         return jsonify({
             'success': True,
-            'is_corn_leaf': is_corn_leaf,
+            'is_corn_leaf': True,
             'leaf_confidence': leaf_conf,
             'result': result,
             'process_time': process_time
