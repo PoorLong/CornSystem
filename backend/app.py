@@ -9,6 +9,24 @@ import time
 import logging
 from model import get_classifier
 from leaf_detector import LeafDetector
+import numpy as np
+
+def convert_to_serializable(obj):
+    """递归转换 NumPy 类型为 Python 原生类型"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, dict):
+        return {key: convert_to_serializable(value) for key, value in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [convert_to_serializable(item) for item in obj]
+    else:
+        return obj
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -174,6 +192,11 @@ def predict():
             leaf_details['contour_info'].pop('mask', None)
             leaf_details['contour_info'].pop('contour', None)
 
+        # 转换所有 NumPy 类型为 Python 原生类型
+        leaf_details = convert_to_serializable(leaf_details)
+        is_corn_leaf = bool(is_corn_leaf)
+        leaf_conf = float(leaf_conf)
+
         if not is_corn_leaf:
             return jsonify({
                 'success': True,
@@ -185,6 +208,8 @@ def predict():
 
         # ---------- 病害识别 ----------
         result = classifier.predict_with_validation(image)
+        result = convert_to_serializable(result)   # 转换结果中的 NumPy 类型
+
         process_time = time.time() - start_time
 
         return jsonify({
@@ -200,7 +225,7 @@ def predict():
         error_detail = traceback.format_exc()
         logger.error(f"预测失败: {error_detail}")
         return jsonify({'success': False, 'error': str(e), 'detail': error_detail}), 500
-
+    
 @app.route('/batch_predict', methods=['POST'])
 def batch_predict():
     start_time = time.time()
